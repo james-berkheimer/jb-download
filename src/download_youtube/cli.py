@@ -13,8 +13,11 @@ elif system == "Linux":
     DEST = Path("/mnt/Transmission/youtube")
 elif system == "Darwin":  # MacOS
     DEST = Path("/Volumes/Transmission/youtube")
+elif system == "FreeBSD":
+    DEST = Path("/media/transmission/")
 else:
     raise Exception(f"Unsupported platform: {system}")
+
 FORMAT = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
 ERROR_MESSAGE = "You must provide a URL or a list of URLs."
 
