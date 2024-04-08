@@ -14,7 +14,7 @@ elif system == "Linux":
 elif system == "Darwin":  # MacOS
     DEST = Path("/Volumes/Transmission/youtube")
 elif system == "FreeBSD":
-    DEST = Path("/media/transmission/")
+    DEST = Path("/media/transmission/youtube")
 else:
     raise Exception(f"Unsupported platform: {system}")
 
