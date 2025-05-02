@@ -4,19 +4,7 @@ from pathlib import Path
 import click
 from yt_dlp import YoutubeDL
 
-# Determine the platform
-system = platform.system()
-
-if system == "Windows":
-    DEST = Path("T:/youtube")
-elif system == "Linux":
-    DEST = Path("/mnt/Transmission/youtube")
-elif system == "Darwin":  # MacOS
-    DEST = Path("/Volumes/Transmission/youtube")
-elif system == "FreeBSD":
-    DEST = Path("/media/transmission/youtube")
-else:
-    raise Exception(f"Unsupported platform: {system}")
+DEST = "/mnt/media/transmission/youtube"
 
 FORMAT = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
 ERROR_MESSAGE = "You must provide a URL or a list of URLs."
@@ -44,9 +32,7 @@ def download_video(ydl, url):
     type=click.Path(exists=True),
     help="Path to a text file with a list of URLs.",
 )
-@click.option(
-    "--noplaylist", is_flag=True, default=False, help="Download single video, not a playlist."
-)
+@click.option("--noplaylist", is_flag=True, default=False, help="Download single video, not a playlist.")
 @click.option("--playlist_items", default=None, help="Number of the playlist item to download.")
 @click.option(
     "--output_path",
