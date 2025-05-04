@@ -17,7 +17,7 @@ classifiers = [
 dependencies = ["click>=8.1.3", "colorlog>=6.4.1", "yt_dlp"]
 
 [project.scripts]
-jb-download = "filetools.cli:main"
+jb-download = "jb_download.cli:main"
 
 [project.optional-dependencies]
 dev = [

@@ -123,7 +123,5 @@ __pypackages__/
 # Custom project-specific exclusions
 # ==============================================================================
 /bin/legacy
-/src/filetools/config.ini
-/src/filetools/shows_map.ini
 shows_map.ini
 deployment/lxc/env

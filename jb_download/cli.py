@@ -10,12 +10,12 @@ FORMAT = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
 ERROR_MESSAGE = "You must provide a URL or a list of URLs."
 
 
-def my_hook(d):
+def my_hook(d) -> None:
     if d["status"] == "finished":
         print("Done downloading, now converting ...")
 
 
-def download_video(ydl, url):
+def download_video(ydl, url) -> None:
     try:
         info = ydl.extract_info(url, download=False)
         print(f"Title: {info['title']}")
@@ -39,7 +39,7 @@ def download_video(ydl, url):
     type=click.Path(),
     help="Path to the directory where the downloaded videos will be saved.",
 )
-def cli(url, url_list_path, noplaylist, playlist_items, output_path):
+def cli(url, url_list_path, noplaylist, playlist_items, output_path) -> None:
     if noplaylist and playlist_items:
         raise click.BadOptionUsage(
             "playlist_items", "You cannot use --playlist_items when --noplaylist is set."
@@ -55,7 +55,7 @@ def cli(url, url_list_path, noplaylist, playlist_items, output_path):
     with YoutubeDL(ydl_opts) as ydl:
         if url_list_path:
             try:
-                with open(url_list_path, "r") as f:
+                with open(url_list_path) as f:
                     urls = f.read().splitlines()
                 for url in urls:
                     download_video(ydl, url)
@@ -67,7 +67,7 @@ def cli(url, url_list_path, noplaylist, playlist_items, output_path):
             raise click.BadParameter(ERROR_MESSAGE)
 
 
-def main():
+def main() -> None:
     cli()
 
 
