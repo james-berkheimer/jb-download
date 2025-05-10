@@ -125,4 +125,5 @@ __pypackages__/
 /bin/legacy
 shows_map.ini
 deployment/lxc/env
-.reference/
+.reference/*
+.vscode/*

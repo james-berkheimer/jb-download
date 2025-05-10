@@ -1,0 +1,47 @@
+{
+  "output_dir": "youtube",
+  "formats": {
+    "mp4": [
+      "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+    ],
+    "mkv": [
+      "bv*+ba/b"
+    ]
+  },
+  "output_template": "%(title)s.%(ext)s",
+  "restrict_filenames": true,
+  "no_overwrites": true,
+  "write_description": true,
+  "write_info_json": true,
+  "write_thumbnail": true,
+  "embed_metadata": true,
+  "embed_subs": true,
+  "subtitles": {
+    "write_subs": true,
+    "sub_langs": ["en"],
+    "embed_subs": true
+  },
+  "postprocessors": [
+    {
+      "key": "FFmpegExtractAudio",
+      "preferredcodec": "mp3",
+      "preferredquality": "192"
+    }
+  ],
+  "concurrent_fragment_downloads": 4,
+  "sleep_interval": {
+    "min": 1,
+    "max": 3
+  },
+  "proxy": "",
+  "geo_bypass": true,
+  "playlist": {
+    "noplaylist": false,
+    "yesplaylist": true,
+    "playlist_items": null
+  },
+  "logger": {
+    "enabled": true,
+    "level": "INFO"
+  }
+}
