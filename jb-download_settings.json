@@ -1,13 +1,8 @@
 {
   "output_dir": "youtube",
-  "formats": {
-    "mp4": [
-      "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
-    ],
-    "mkv": [
-      "bv*+ba/b"
-    ]
-  },
+  "formats": [
+    "bv*+ba/b"
+  ],
   "output_template": "%(title)s.%(ext)s",
   "restrict_filenames": true,
   "no_overwrites": true,
@@ -21,13 +16,7 @@
     "sub_langs": ["en"],
     "embed_subs": true
   },
-  "postprocessors": [
-    {
-      "key": "FFmpegExtractAudio",
-      "preferredcodec": "mp3",
-      "preferredquality": "192"
-    }
-  ],
+  "postprocessors": [],
   "concurrent_fragment_downloads": 4,
   "sleep_interval": {
     "min": 1,

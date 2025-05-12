@@ -9,7 +9,7 @@ log = logging.getLogger("jb-download")
 CONFIG = DownloadConfig()
 
 
-def my_hook(d: dict) -> None:
+def my_hook(d) -> None:
     if d["status"] == "finished":
         log.info("Done downloading, now converting ...")
 
@@ -26,7 +26,6 @@ def download_video(ydl: YoutubeDL, url: str) -> None:
 def run_download(
     url: str | None,
     url_list_path: str | None,
-    filetype: str,
     resolution: str | None,
     noplaylist: bool,
     playlist_items: str | None,
@@ -37,7 +36,7 @@ def run_download(
 
     output_dir = Path(output_path) if output_path else CONFIG.output_dir
     output_template = output_dir / CONFIG.output_template
-    format_string = CONFIG.get_format_string(filetype, resolution)
+    format_string = CONFIG.get_format_string(resolution)
 
     ydl_opts = {
         "format": format_string,
@@ -45,6 +44,7 @@ def run_download(
         "progress_hooks": [my_hook],
         "outtmpl": str(output_template),
         "playlist_items": playlist_items,
+        "merge_output_format": "mkv",
     }
 
     ydl_opts.update(CONFIG.default_flags)

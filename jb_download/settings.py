@@ -13,7 +13,7 @@ class DownloadConfig:
 
     settings_path: Path
     output_dir: Path
-    formats: dict[str, list[str]]
+    formats: list[str]
     output_template: str
     default_flags: dict[str, Any]
     _data: dict[str, Any]
@@ -27,17 +27,14 @@ class DownloadConfig:
         elif env_path:
             self.settings_path = Path(env_path)
         else:
-            self.settings_path = Path(__file__).resolve().parents[1] / "jb-download_settings.json"
+            self.settings_path = Path(__file__).resolve().parents[1] / "settings.json"
 
         self._data = self._load_settings()
 
         # Load general settings
         subdir = self._data.get("output_dir", "youtube")
         self.output_dir = Path(media_base) / subdir
-        self.formats = self._data.get(
-            "formats",
-            {"mp4": ["bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"], "mkv": ["bv*+ba/b"]},
-        )
+        self.formats = self._data.get("formats", ["bv*+ba/b"])
         self.output_template = self._data.get("output_template", "%(title)s.%(ext)s")
 
         # Optional flags
@@ -62,17 +59,12 @@ class DownloadConfig:
             log.warning("Unable to load jb-download package version.")
             return "unknown"
 
-    def get_format_string(self, filetype: str, resolution: str | None = None) -> str:
-        formats = self.formats.get(filetype, [])
+    def get_format_string(self, resolution: str | None = None) -> str:
+        formats = self.formats
 
         if resolution:
             formats = [
                 f"{fmt}[height<={resolution}]" if "[height<=" not in fmt else fmt for fmt in formats
             ]
-
-        if not formats:
-            fallback_type = "mp4" if filetype == "mkv" else "mkv"
-            log.warning(f"No formats found for '{filetype}', falling back to '{fallback_type}'")
-            formats = self.formats.get(fallback_type, [])
 
         return formats[0] if formats else "best"

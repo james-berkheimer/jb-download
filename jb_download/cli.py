@@ -11,9 +11,6 @@ from jb_download.downloader import run_download
     type=click.Path(exists=True),
     help="Path to a text file with a list of URLs.",
 )
-@click.option(
-    "--filetype", default="mkv", type=click.Choice(["mp4", "mkv"]), help="Preferred file format."
-)
 @click.option("--resolution", default=None, help="Maximum resolution to download (e.g., 1080).")
 @click.option("--noplaylist", is_flag=True, default=False, help="Download single video, not a playlist.")
 @click.option("--playlist_items", default=None, help="Number of the playlist item to download.")
@@ -25,7 +22,6 @@ from jb_download.downloader import run_download
 def cli(
     url: str,
     url_list_path: str,
-    filetype: str,
     resolution: str,
     noplaylist: bool,
     playlist_items: str,
@@ -34,7 +30,6 @@ def cli(
     run_download(
         url=url,
         url_list_path=url_list_path,
-        filetype=filetype,
         resolution=resolution,
         noplaylist=noplaylist,
         playlist_items=playlist_items,
