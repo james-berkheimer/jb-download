@@ -151,6 +151,11 @@ jobs:
           sudo apt update
           sudo apt install -y gh
 
+      - name: Authenticate gh CLI with GITHUB_TOKEN
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub release if missing
         run: |
           gh release view "v${VERSION}" >/dev/null 2>&1 && echo "Release already exists" || \
