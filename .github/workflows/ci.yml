@@ -1,0 +1,168 @@
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+      - ".gitignore"
+  pull_request:
+    paths-ignore:
+      - "README.md"
+      - ".gitignore"
+
+jobs:
+  version-setup:
+    name: Parse Version Info
+    runs-on: ubuntu-latest
+    outputs:
+      PYTHON_VERSION: ${{ steps.set.outputs.PYTHON_VERSION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Parse required Python version
+        id: set
+        run: |
+          PYTHON_VERSION=$(grep -Po '(?<=requires-python = ">=)\d+\.\d+' pyproject.toml)
+          echo "PYTHON_VERSION=$PYTHON_VERSION" >> $GITHUB_OUTPUT
+
+  bump-version:
+    name: Bump Patch Version and Tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read and bump patch version
+        id: bump
+        run: |
+          git fetch --tags
+          version=$(cat VERSION)
+          base="${version%.*}"
+          patch="${version##*.}"
+          new_version="$base.$((patch + 1))"
+          while git rev-parse "v$new_version" >/dev/null 2>&1; do
+            patch=$((patch + 1))
+            new_version="$base.$patch"
+          done
+          echo "$new_version" > VERSION
+          echo "VERSION=$new_version" >> $GITHUB_ENV
+          echo "version=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Commit and tag version safely
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "ci: bump patch version to $VERSION"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin main --follow-tags || {
+            echo "Push failed. Rolling back tag and commit."
+            git tag -d "v$VERSION" || true
+            git reset --hard HEAD~1 || true
+          }
+
+  build-wheel:
+    name: Build jb-download Wheel
+    runs-on: ubuntu-latest
+    needs: [bump-version, version-setup]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Re-sync with latest pushed bump
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.version-setup.outputs.PYTHON_VERSION }}
+
+      - name: Install hatchling
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatchling
+
+      - name: Build wheel
+        run: |
+          python -m hatchling build
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: download-wheel
+          path: dist/*.whl
+
+  package-installer:
+    name: Package Installer Script
+    runs-on: ubuntu-latest
+    needs: [bump-version]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Package install.sh into tarball
+        run: |
+          mkdir -p staging/jb-download-installer
+          cp install.sh staging/jb-download-installer/
+          chmod +x staging/jb-download-installer/install.sh
+          tar -czf install-jb-download.tar.gz -C staging jb-download-installer
+
+      - name: Upload install artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-jb-download
+          path: install-jb-download.tar.gz
+
+  release:
+    name: Upload Artifacts to GitHub Release
+    runs-on: ubuntu-latest
+    needs: [package-installer, build-wheel, bump-version]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set VERSION from bump-version output
+        run: echo "VERSION=${{ needs.bump-version.outputs.version }}" >> $GITHUB_ENV
+
+      - name: Download install artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: install-jb-download
+          path: .
+
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: download-wheel
+          path: download-wheel
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install -y gh
+
+      - name: Create GitHub release if missing
+        run: |
+          gh release view "v${VERSION}" >/dev/null 2>&1 && echo "Release already exists" || \
+          gh release create "v${VERSION}" --title "v${VERSION}" --notes "Automated release for v${VERSION}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+
+      - name: Upload artifacts to release
+        run: |
+          gh release upload "v${VERSION}" "install-jb-download.tar.gz" --clobber
+          gh release upload "v${VERSION}" "download-wheel/*.whl" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
