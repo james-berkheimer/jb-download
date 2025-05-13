@@ -1,49 +1,57 @@
-JB Download
+# JB Download
 
 A command-line utility for downloading media using yt-dlp, with clean settings integration, virtual environment isolation, and one-command updating.
 
 ---
 
-Quick Start: Install Locally
+## Quick Start: Install Locally
 
-To install jb-download into /opt/jb-download with a virtual environment:
+To install `jb-download` into `/opt/jb-download` with a virtual environment:
 
-1. Download the installer bundle
+### 1. Download the installer bundle
 
-   curl -L https://github.com/james-berkheimer/jb-download/releases/latest/download/install-jb-download.tar.gz | tar xz
-   cd jb-download-installer
-   chmod +x install.sh
+```bash
+curl -L https://github.com/james-berkheimer/jb-download/releases/latest/download/install-jb-download.tar.gz | tar xz
+cd jb-download-installer
+chmod +x install.sh
+```
 
-2. Run the installer
+### 2. Run the installer
 
-   sudo ./install.sh
+```bash
+sudo ./install.sh
+```
 
 This will:
 
 - Install Python and required tools
-- Create a virtual environment in /opt/jb-download/venv
+- Create a virtual environment in `/opt/jb-download/venv`
 - Download the latest jb-download wheel from GitHub Releases
 - Install jb-download into the venv
-- Add aliases and environment config via /etc/profile.d/jb-download.sh
+- Add aliases and environment config via `/etc/profile.d/jb-download.sh`
 
 ---
 
-Aliases
+## Aliases
 
-After reboot or 'source /etc/profile', the following commands will be available:
+After reboot or `source /etc/profile`, the following commands will be available:
 
-    jb-download             # Run the CLI
-    jb-download-update      # Pull the latest jb-download release and install it
-    jb-download-uninstall   # Remove jb-download from system
-    jb-download-settings    # Open your active jb-download settings.json
+```bash
+jb-download             # Run the CLI
+jb-download-update      # Pull the latest jb-download release and install it
+jb-download-uninstall   # Remove jb-download from system
+jb-download-settings    # Open your active jb-download settings.json
+```
 
 ---
 
-Updating
+## Updating
 
 To update the app:
 
-    jb-download-update
+```bash
+jb-download-update
+```
 
 This will:
 
@@ -53,21 +61,23 @@ This will:
 
 ---
 
-Uninstalling
+## Uninstalling
 
 To remove jb-download completely:
 
-    sudo jb-download-uninstall
+```bash
+sudo jb-download-uninstall
+```
 
 This will:
 
-- Remove /opt/jb-download
-- Remove the /etc/profile.d/jb-download.sh alias file
-- Recommend reboot or 'source /etc/profile' to finalize cleanup
+- Remove `/opt/jb-download`
+- Remove the `/etc/profile.d/jb-download.sh` alias file
+- Recommend reboot or `source /etc/profile` to finalize cleanup
 
 ---
 
-Developer Info
+## Developer Info
 
 This repo includes:
 
@@ -77,12 +87,12 @@ This repo includes:
 
 ---
 
-Versioning
+## Versioning
 
-Versioning is handled automatically via GitHub Actions. The VERSION file is updated and tagged on every push to main.
+Versioning is handled automatically via GitHub Actions. The `VERSION` file is updated and tagged on every push to `main`.
 
 ---
 
-License
+## License
 
 MIT © James Berkheimer
