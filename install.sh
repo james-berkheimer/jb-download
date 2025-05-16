@@ -21,11 +21,11 @@ if [ -z "$LATEST_VERSION" ]; then
   echo "Error: Unable to fetch latest jb-download version from GitHub."
   exit 1
 fi
-curl -fL -o /tmp/download-${LATEST_VERSION}-py3-none-any.whl \
-  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/download-${LATEST_VERSION}-py3-none-any.whl"
+curl -fL -o /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl \
+  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
 
 echo "=== Installing jb-download v${LATEST_VERSION} ==="
-"$VENV_PATH/bin/pip" install /tmp/download-${LATEST_VERSION}-py3-none-any.whl
+"$VENV_PATH/bin/pip" install /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl
 rm -f /tmp/download-*.whl
 
 echo "=== Verifying install ==="
