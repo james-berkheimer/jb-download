@@ -21,15 +21,21 @@ if [ -z "$LATEST_VERSION" ]; then
   echo "Error: Unable to fetch latest jb-download version from GitHub."
   exit 1
 fi
-curl -fL -o /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl \
+WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl"
+curl -fL -o "$WHEEL_PATH" \
   "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
 
+if [ ! -f "$WHEEL_PATH" ]; then
+  echo "❌ Wheel file not downloaded properly!"
+  exit 1
+fi
+
 echo "=== Installing jb-download v${LATEST_VERSION} ==="
-"$VENV_PATH/bin/pip" install /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl
-rm -f /tmp/download-*.whl
+"$VENV_PATH/bin/pip" install "$WHEEL_PATH"
+rm -f /tmp/jb_download-*.whl
 
 echo "=== Verifying install ==="
-"$VENV_PATH/bin/jb-download" --help
+/opt/jb-download/venv/bin/jb-download --help
 
 echo "=== Creating update.sh ==="
 cat > "$INSTALL_DIR/update.sh" << 'EOF'
@@ -42,11 +48,17 @@ if [ -z "$LATEST_VERSION" ]; then
   exit 1
 fi
 echo "➡ Updating to version: $LATEST_VERSION"
-curl -fL -o /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl \
+WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl"
+curl -fL -o "$WHEEL_PATH" \
   "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
-"$VENV_PATH/bin/pip" install --upgrade /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl
-rm -f /tmp/jb_download-*.whl
 
+if [ ! -f "$WHEEL_PATH" ]; then
+  echo "❌ Wheel file not downloaded properly!"
+  exit 1
+fi
+
+"$VENV_PATH/bin/pip" install --upgrade "$WHEEL_PATH"
+rm -f /tmp/jb_download-*.whl
 "$VENV_PATH/bin/jb-download" --help
 echo "Update complete"
 EOF
