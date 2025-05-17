@@ -42,10 +42,11 @@ if [ -z "$LATEST_VERSION" ]; then
   exit 1
 fi
 echo "➡ Updating to version: $LATEST_VERSION"
-curl -fL -o /tmp/download-${LATEST_VERSION}-py3-none-any.whl \
-  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/download-${LATEST_VERSION}-py3-none-any.whl"
-"$VENV_PATH/bin/pip" install --upgrade /tmp/download-${LATEST_VERSION}-py3-none-any.whl
-rm -f /tmp/download-*.whl
+curl -fL -o /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl \
+  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
+"$VENV_PATH/bin/pip" install --upgrade /tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl
+rm -f /tmp/jb_download-*.whl
+
 "$VENV_PATH/bin/jb-download" --help
 echo "Update complete"
 EOF
