@@ -16,17 +16,19 @@ python3 -m venv "$VENV_PATH"
 "$VENV_PATH/bin/pip" install --upgrade pip setuptools wheel
 
 echo "=== Downloading latest jb-download wheel ==="
-LATEST_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | grep -Po '"tag_name": "v\\K[^"]+')
+LATEST_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+echo "➡ Latest version: $LATEST_VERSION"
 if [ -z "$LATEST_VERSION" ]; then
   echo "Error: Unable to fetch latest jb-download version from GitHub."
   exit 1
 fi
-WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl"
-curl -fL -o "$WHEEL_PATH" \
-  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
 
-if [ ! -f "$WHEEL_PATH" ]; then
-  echo "❌ Wheel file not downloaded properly!"
+WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION#v}-py3-none-any.whl"
+curl -fL -o "$WHEEL_PATH" \
+  "https://github.com/james-berkheimer/jb-download/releases/download/${LATEST_VERSION}/jb_download-${LATEST_VERSION#v}-py3-none-any.whl"
+
+if [ ! -s "$WHEEL_PATH" ]; then
+  echo "❌ Wheel file not downloaded properly or is empty!"
   exit 1
 fi
 
