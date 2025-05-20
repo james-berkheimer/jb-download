@@ -61,6 +61,17 @@ fi
 
 "$VENV_PATH/bin/pip" install --upgrade "$WHEEL_PATH"
 rm -f /tmp/jb_download-*.whl
+
+echo "=== Copying default settings ==="
+SETTINGS_SRC=$(find "$VENV_PATH/lib/python3."*/site-packages/jb_download/default_settings.json 2>/dev/null | head -n 1)
+SETTINGS_DEST="/opt/jb-download/jb-download_settings.json"
+if [ -f "$SETTINGS_SRC" ]; then
+  cp "$SETTINGS_SRC" "$SETTINGS_DEST"
+  echo "➡ Copied settings to $SETTINGS_DEST"
+else
+  echo "❌ Failed to find default_settings.json in site-packages"
+fi
+
 "$VENV_PATH/bin/jb-download" --help
 echo "Update complete"
 EOF

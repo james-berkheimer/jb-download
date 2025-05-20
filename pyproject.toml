@@ -33,7 +33,7 @@ dev = [
 
 [tool.hatch.build]
 [tool.hatch.build.targets.wheel]
-include = ["jb_download"]
+include = ["jb_download", "jb_download/default_settings.json"]
 
 [tool.hatch.version]
 path = "VERSION"

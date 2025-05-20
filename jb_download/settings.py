@@ -27,7 +27,7 @@ class DownloadConfig:
         elif env_path:
             self.settings_path = Path(env_path)
         else:
-            self.settings_path = Path(__file__).resolve().parents[1] / "settings.json"
+            self.settings_path = Path("/opt/jb-download/jb-download_settings.json")
 
         self._data = self._load_settings()
 
