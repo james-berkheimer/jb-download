@@ -38,6 +38,10 @@ def run_download(
     output_template = output_dir / CONFIG.output_template
     format_string = CONFIG.get_format_string(resolution)
 
+    # Resolve cookie settings
+    cookie_file = CONFIG._data.get("cookie_file")
+    use_browser_cookies = CONFIG._data.get("use_browser_cookies", False)
+
     ydl_opts = {
         "format": format_string,
         "noplaylist": noplaylist,
@@ -45,8 +49,12 @@ def run_download(
         "outtmpl": str(output_template),
         "playlist_items": playlist_items,
         "merge_output_format": "mkv",
-        "cookiesfrom_browser": "chrome",
     }
+
+    if use_browser_cookies:
+        ydl_opts["cookiesfrom_browser"] = "chrome"
+    elif cookie_file:
+        ydl_opts["cookies"] = cookie_file
 
     ydl_opts.update(CONFIG.default_flags)
 

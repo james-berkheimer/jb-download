@@ -32,5 +32,7 @@
   "logger": {
     "enabled": true,
     "level": "INFO"
-  }
+  },
+  "cookie_file": "/root/.jbtools/cookies/youtube.com_cookies.txt",
+  "use_browser_cookies": false
 }

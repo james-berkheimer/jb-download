@@ -77,6 +77,37 @@ This will:
 
 ---
 
+## Optional: YouTube Cookie Support
+
+Some age-restricted or private YouTube videos require authentication.
+
+You can configure `jb-download` to use either browser-based or file-based cookie authentication:
+
+### Option 1: Use cookies from your browser (host-only)
+
+Enable in your `jb-download_settings.json`:
+\`\`\`json
+"use_browser_cookies": true
+\`\`\`
+
+> Requires Chrome installed and accessible to the container.
+
+### Option 2: Use an exported cookies file
+
+1. Install the [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/) extension.
+2. Export cookies from https://www.youtube.com.
+3. Save the file as:
+   \`\`\`
+   /root/.jbtools/cookies/youtube.com_cookies.txt
+   \`\`\`
+4. Then set in your settings:
+   \`\`\`json
+   "cookie_file": "/root/.jbtools/cookies/youtube.com_cookies.txt",
+   "use_browser_cookies": false
+   \`\`\`
+
+> This method is recommended for container environments where browser access is unavailable.
+
 ## Developer Info
 
 This repo includes:
