@@ -6,7 +6,7 @@ echo "=== Updating jb-download in Container ==="
 VENV_PATH="/opt/jb-download/venv"
 
 # Get latest release version dynamically from GitHub API
-DOWNLOAD_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | grep -Po '"tag_name": "v\\K[^"]+')
+DOWNLOAD_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | jq -r .tag_name | sed 's/^v//')
 
 if [ -z "$DOWNLOAD_VERSION" ]; then
   echo "Error: Unable to fetch latest jb-download version from GitHub."

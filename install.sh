@@ -6,7 +6,8 @@ INSTALL_DIR="/opt/jb-download"
 
 echo "=== Installing dependencies ==="
 apt update
-apt install -y python3 python3-venv python3-pip curl
+apt install -y python3 python3-venv python3-pip curl jq
+
 
 echo "=== Creating installation directory ==="
 mkdir -p "$VENV_PATH"
