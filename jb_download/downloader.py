@@ -45,6 +45,7 @@ def run_download(
         "outtmpl": str(output_template),
         "playlist_items": playlist_items,
         "merge_output_format": "mkv",
+        "cookiesfrombrowser": "chrome",
     }
 
     ydl_opts.update(CONFIG.default_flags)
