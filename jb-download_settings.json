@@ -1,8 +1,9 @@
 {
   "output_dir": "youtube",
   "formats": [
-    "bv*+ba/b"
+    "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]"
   ],
+  "merge_output_format": "mp4",
   "output_template": "%(title)s.%(ext)s",
   "restrict_filenames": true,
   "no_overwrites": true,
@@ -13,7 +14,9 @@
   "embed_subs": true,
   "subtitles": {
     "write_subs": true,
-    "sub_langs": ["en"],
+    "sub_langs": [
+      "en"
+    ],
     "embed_subs": true
   },
   "postprocessors": [],
