@@ -1,94 +1,81 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# Install jb-download into an isolated virtual environment under /opt/jb-download.
+set -euo pipefail
 
-VENV_PATH="/opt/jb-download/venv"
 INSTALL_DIR="/opt/jb-download"
+VENV_PATH="$INSTALL_DIR/venv"
+SETTINGS_PATH="$INSTALL_DIR/jb-download_settings.json"
+PROFILE_SCRIPT="/etc/profile.d/jb-download.sh"
+REPO="james-berkheimer/jb-download"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Error: this installer must be run as root (try: sudo ./install.sh)." >&2
+  exit 1
+fi
 
 echo "=== Installing dependencies ==="
-apt update
-apt install -y python3 python3-venv python3-pip curl jq
-
-
-echo "=== Creating installation directory ==="
-mkdir -p "$VENV_PATH"
+apt-get update
+apt-get install -y python3 python3-venv python3-pip curl jq ffmpeg
 
 echo "=== Creating virtual environment ==="
+mkdir -p "$INSTALL_DIR"
 python3 -m venv "$VENV_PATH"
 "$VENV_PATH/bin/pip" install --upgrade pip setuptools wheel
 
 echo "=== Downloading latest jb-download wheel ==="
-LATEST_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
-echo "➡ Latest version: $LATEST_VERSION"
-if [ -z "$LATEST_VERSION" ]; then
-  echo "Error: Unable to fetch latest jb-download version from GitHub."
+VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//')"
+if [ -z "$VERSION" ]; then
+  echo "Error: unable to fetch the latest jb-download version from GitHub." >&2
   exit 1
 fi
+echo "-> Latest version: $VERSION"
 
-WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION#v}-py3-none-any.whl"
+WHEEL_PATH="$(mktemp -d)/jb_download-${VERSION}-py3-none-any.whl"
+trap 'rm -rf "$(dirname "$WHEEL_PATH")"' EXIT
 curl -fL -o "$WHEEL_PATH" \
-  "https://github.com/james-berkheimer/jb-download/releases/download/${LATEST_VERSION}/jb_download-${LATEST_VERSION#v}-py3-none-any.whl"
+  "https://github.com/$REPO/releases/download/v${VERSION}/jb_download-${VERSION}-py3-none-any.whl"
 
 if [ ! -s "$WHEEL_PATH" ]; then
-  echo "❌ Wheel file not downloaded properly or is empty!"
+  echo "Error: the downloaded wheel is missing or empty." >&2
   exit 1
 fi
 
-echo "=== Installing jb-download v${LATEST_VERSION} ==="
+echo "=== Installing jb-download v${VERSION} ==="
 "$VENV_PATH/bin/pip" install "$WHEEL_PATH"
-rm -f /tmp/jb_download-*.whl
 
-echo "=== Verifying install ==="
-/opt/jb-download/venv/bin/jb-download --help
+echo "=== Installing management scripts ==="
+for script in update.sh uninstall.sh; do
+  if [ ! -f "$SCRIPT_DIR/$script" ]; then
+    echo "Error: $script is missing from the installer bundle." >&2
+    exit 1
+  fi
+  install -m 755 "$SCRIPT_DIR/$script" "$INSTALL_DIR/$script"
+done
 
-echo "=== Creating update.sh ==="
-cat > "$INSTALL_DIR/update.sh" << 'EOF'
-#!/bin/bash
-set -e
-VENV_PATH="/opt/jb-download/venv"
-LATEST_VERSION=$(curl -s https://api.github.com/repos/james-berkheimer/jb-download/releases/latest | grep -Po '"tag_name": "v\\K[^"]+')
-if [ -z "$LATEST_VERSION" ]; then
-  echo "Error: Unable to fetch latest jb-download version."
-  exit 1
-fi
-echo "➡ Updating to version: $LATEST_VERSION"
-WHEEL_PATH="/tmp/jb_download-${LATEST_VERSION}-py3-none-any.whl"
-curl -fL -o "$WHEEL_PATH" \
-  "https://github.com/james-berkheimer/jb-download/releases/download/v${LATEST_VERSION}/jb_download-${LATEST_VERSION}-py3-none-any.whl"
-
-if [ ! -f "$WHEEL_PATH" ]; then
-  echo "❌ Wheel file not downloaded properly!"
-  exit 1
-fi
-
-"$VENV_PATH/bin/pip" install --upgrade "$WHEEL_PATH"
-rm -f /tmp/jb_download-*.whl
-
-echo "=== Copying default settings ==="
-SETTINGS_SRC=$(find "$VENV_PATH/lib/python3."*/site-packages/jb_download/default_settings.json 2>/dev/null | head -n 1)
-SETTINGS_DEST="/opt/jb-download/jb-download_settings.json"
-if [ -f "$SETTINGS_SRC" ]; then
-  cp "$SETTINGS_SRC" "$SETTINGS_DEST"
-  echo "➡ Copied settings to $SETTINGS_DEST"
+echo "=== Seeding settings ==="
+DEFAULTS="$("$VENV_PATH/bin/python" -c 'from jb_download.settings import PACKAGED_DEFAULTS; print(PACKAGED_DEFAULTS)')"
+if [ -f "$SETTINGS_PATH" ]; then
+  echo "-> Keeping existing settings at $SETTINGS_PATH"
+elif [ -f "$DEFAULTS" ]; then
+  cp "$DEFAULTS" "$SETTINGS_PATH"
+  echo "-> Wrote default settings to $SETTINGS_PATH"
 else
-  echo "❌ Failed to find default_settings.json in site-packages"
+  echo "Warning: packaged defaults not found at '$DEFAULTS'." >&2
 fi
-
-"$VENV_PATH/bin/jb-download" --help
-echo "Update complete"
-EOF
-
-chmod +x "$INSTALL_DIR/update.sh"
 
 echo "=== Setting up aliases ==="
-cat > /etc/profile.d/jb-download.sh << 'EOF'
-export JBDOWNLOAD_SETTINGS=/opt/jb-download/venv/lib/python3.*/site-packages/jb_download_settings.json
-alias jb-download="/opt/jb-download/venv/bin/jb-download"
-alias jb-download-update="/opt/jb-download/update.sh"
-alias jb-download-uninstall="/opt/jb-download/uninstall.sh"
-alias jb-download-settings='nano $(find /opt/jb-download/venv/lib/python3*/site-packages/jb_download_settings.json 2>/dev/null | head -n 1)'
+cat > "$PROFILE_SCRIPT" << EOF
+export JBDOWNLOAD_SETTINGS="$SETTINGS_PATH"
+alias jb-download="$VENV_PATH/bin/jb-download"
+alias jb-download-update="$INSTALL_DIR/update.sh"
+alias jb-download-uninstall="$INSTALL_DIR/uninstall.sh"
+alias jb-download-settings="\${EDITOR:-nano} $SETTINGS_PATH"
 EOF
+chmod 644 "$PROFILE_SCRIPT"
 
-chmod +x /etc/profile.d/jb-download.sh
+echo "=== Verifying install ==="
+"$VENV_PATH/bin/jb-download" --version
 
 echo "=== Installation complete ==="
-echo "➡ Run 'source /etc/profile' or reboot to activate aliases"
+echo "-> Run 'source $PROFILE_SCRIPT' or start a new login shell to activate the aliases."

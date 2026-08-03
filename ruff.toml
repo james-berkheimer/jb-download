@@ -2,8 +2,10 @@
 line-length = 105
 indent-width = 4
 target-version = "py312"
-fix = true
-unsafe-fixes = true
+# Fixes are applied explicitly via `ruff check --fix`, never as a side effect
+# of a bare `ruff check` (which CI runs with --no-fix).
+fix = false
+unsafe-fixes = false
 
 # Exclude commonly ignored directories
 exclude = [
@@ -35,8 +37,6 @@ exclude = [
     "venv",
     "vendor",
     "generated",
-    "_redunant/",
-    "filetools/_scratch.py",
 ]
 
 
@@ -56,29 +56,25 @@ select = [
     "ANN", # flake8-annotations
     "Q",   # flake8-quotes
     "S",   # flake8-bandit security rules
-    # "D",   # pydocstyle
+    "D",   # pydocstyle
     "RET", # flake8-return
     "A",   # flake8-builtins
+    "G",   # flake8-logging-format
+    "BLE", # flake8-blind-except
+    "PTH", # flake8-use-pathlib
+    "SIM", # flake8-simplify
 ]
 
 # Ignore rules
 ignore = [
-    "E203",   # Whitespace before ':'
-    "E501",   # Line too long
-    "E722",   # Bare except
-    "N802",   # Function name should be lowercase
-    "F401",   # Unused imports
-    "ISC001", # Implicit string concatenation
-    "E721",   # Type comparison using type()
-    "D100",   # Missing docstring in public module
-    "D104",   # Missing docstring in public package
-    "S101",   # Use of assert detected
-    "F841",   # Local variable is assigned to but never used
+    "E203",   # Whitespace before ':' -- conflicts with the formatter
+    "ISC001", # Implicit string concatenation -- conflicts with the formatter
+    "G004",   # f-string in logging call -- deliberate, messages are always emitted
 ]
 
 # Fix settings
 fixable = ["ALL"]
-unfixable = ["Q000", "F401"]
+unfixable = ["F401", "F841"]
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -87,7 +83,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [lint.per-file-ignores]
 "tests/*" = ["S101", "ANN", "D"]
 "__init__.py" = ["F401"]
-"examples/*" = ["D", "ANN"]
 
 [lint.pydocstyle]
 convention = "google"
@@ -96,7 +91,7 @@ convention = "google"
 max-complexity = 10
 
 [lint.isort]
-known-first-party = ["jb_filetools"]
+known-first-party = ["jb_download"]
 section-order = [
     "future",
     "standard-library",
