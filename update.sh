@@ -14,13 +14,13 @@ if [ ! -x "$VENV_PATH/bin/pip" ]; then
   exit 1
 fi
 
-VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//')"
+VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//' || true)"
 if [ -z "$VERSION" ]; then
   echo "Error: unable to fetch the latest jb-download version from GitHub." >&2
   exit 1
 fi
 
-CURRENT="$("$VENV_PATH/bin/jb-download" --version 2>/dev/null | awk '{print $NF}')"
+CURRENT="$("$VENV_PATH/bin/jb-download" --version 2>/dev/null | awk '{print $NF}' || true)"
 echo "-> Installed: ${CURRENT:-unknown}, latest: $VERSION"
 if [ "$CURRENT" = "$VERSION" ]; then
   echo "Already up to date."

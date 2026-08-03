@@ -24,7 +24,7 @@ python3 -m venv "$VENV_PATH"
 "$VENV_PATH/bin/pip" install --upgrade pip setuptools wheel
 
 echo "=== Downloading latest jb-download wheel ==="
-VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//')"
+VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//' || true)"
 if [ -z "$VERSION" ]; then
   echo "Error: unable to fetch the latest jb-download version from GitHub." >&2
   exit 1
