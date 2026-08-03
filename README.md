@@ -103,6 +103,7 @@ Defaults ship inside the package (`jb_download/default_settings.json`). Your set
 | `formats` | List of yt-dlp format selectors, tried in order as a fallback chain. |
 | `fallback_to_best` | Append a bare `best` as the last resort so selection never fails outright. |
 | `merge_output_format` | Container for merged video+audio, e.g. `mp4`. |
+| `remux_video` | Remux the finished file into this container (requires ffmpeg). Empty disables it. |
 | `output_template` | yt-dlp output template, e.g. `%(title)s.%(ext)s`. |
 | `restrict_filenames` | Strip spaces and special characters from filenames. |
 | `no_overwrites` | Never overwrite an existing file. |

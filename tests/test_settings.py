@@ -128,6 +128,23 @@ class TestBuildYdlOpts:
         assert "FFmpegEmbedSubtitle" in keys
         assert "FFmpegMetadata" in keys
 
+    def test_remux_video_becomes_a_remuxer_postprocessor(self, make_config):
+        pps = make_config({"remux_video": "mp4"}).build_ydl_opts()["postprocessors"]
+
+        assert pps[0] == {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}
+
+    def test_remux_runs_before_anything_is_embedded(self, make_config):
+        pps = make_config({"remux_video": "mkv"}).build_ydl_opts()["postprocessors"]
+        keys = [pp["key"] for pp in pps]
+
+        assert keys.index("FFmpegVideoRemuxer") < keys.index("FFmpegEmbedSubtitle")
+        assert keys.index("FFmpegVideoRemuxer") < keys.index("FFmpegMetadata")
+
+    def test_empty_remux_video_is_omitted(self, make_config):
+        keys = [pp["key"] for pp in make_config().build_ydl_opts()["postprocessors"]]
+
+        assert "FFmpegVideoRemuxer" not in keys
+
     def test_empty_proxy_is_omitted(self, make_config):
         assert "proxy" not in make_config().build_ydl_opts()
 

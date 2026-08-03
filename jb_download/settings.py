@@ -187,6 +187,12 @@ class DownloadConfig:
         subtitles = self._data.get("subtitles", {})
         postprocessors: list[dict[str, Any]] = []
 
+        # Remuxing has to happen before anything is embedded, so that subtitles
+        # and metadata land in the final container. This matches yt-dlp's own order.
+        remux = self._data.get("remux_video")
+        if remux:
+            postprocessors.append({"key": "FFmpegVideoRemuxer", "preferedformat": remux})
+
         if self._data.get("embed_subs") or subtitles.get("embed_subs"):
             postprocessors.append({"key": "FFmpegEmbedSubtitle"})
         if self._data.get("embed_metadata"):

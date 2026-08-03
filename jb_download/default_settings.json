@@ -8,6 +8,7 @@
   ],
   "fallback_to_best": true,
   "merge_output_format": "mp4",
+  "remux_video": "",
   "output_template": "%(title)s.%(ext)s",
   "restrict_filenames": true,
   "no_overwrites": true,
