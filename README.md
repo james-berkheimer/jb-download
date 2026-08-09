@@ -76,14 +76,43 @@ in your settings or pass it per run:
 jb-download <URL> --cookies /root/.jbtools/cookies/youtube.com_cookies.txt
 ```
 
-On a desktop machine you can read them straight from a browser profile instead:
+If the machine running jb-download has the browser installed, read cookies straight from it:
 
 ```bash
 jb-download <URL> --cookies-from-browser firefox
 ```
 
+#### Producing a cookies file without a browser extension
+
+On a headless box the browser lives on a *different* machine, so use one of these. Neither
+needs any third-party software.
+
+**If that machine runs Firefox** — copy the profile directory over and point at it. Firefox
+stores cookies unencrypted, so the profile is portable across machines and operating systems:
+
+```bash
+# on the machine with Firefox, find the profile directory:
+#   Windows: %APPDATA%\Mozilla\Firefox\Profiles\<something>.default-release
+#   macOS:   ~/Library/Application Support/Firefox/Profiles/<something>.default-release
+#   Linux:   ~/.mozilla/firefox/<something>.default-release
+# copy it to the download host, then:
+jb-download <URL> --cookies-from-browser "firefox:/root/.jbtools/firefox-profile"
+```
+
+Close Firefox before copying, so `cookies.sqlite` is not mid-write.
+
+**If that machine runs Chrome or Edge** — the cookie database is encrypted against the local
+user account and cannot be decrypted elsewhere, so the export has to happen on that machine.
+Install yt-dlp there and have it write the cookies out:
+
+```bash
+yt-dlp --cookies-from-browser chrome --cookies cookies.txt --skip-download "https://www.youtube.com/watch?v=BaW_jenozKc"
+```
+
+Copy the resulting `cookies.txt` to the download host and set `cookie_file` to its path.
+
 See the [yt-dlp cookie FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
-for how to export them.
+for background.
 
 ---
 
@@ -107,7 +136,7 @@ Defaults ship inside the package (`jb_download/default_settings.json`). Your set
 | `output_template` | yt-dlp output template, e.g. `%(title)s.%(ext)s`. |
 | `restrict_filenames` | Strip spaces and special characters from filenames. |
 | `no_overwrites` | Never overwrite an existing file. |
-| `write_description` / `write_info_json` / `write_thumbnail` | Write the sidecar files. |
+| `write_description` / `write_info_json` / `write_thumbnail` | Write the sidecar files alongside the video. Off by default. |
 | `embed_metadata` / `embed_thumbnail` / `embed_subs` | Post-process the media file (requires ffmpeg). |
 | `subtitles.write_subs` / `subtitles.sub_langs` / `subtitles.embed_subs` | Subtitle handling. |
 | `postprocessors` | Extra raw yt-dlp postprocessor entries. |
@@ -118,7 +147,7 @@ Defaults ship inside the package (`jb_download/default_settings.json`). Your set
 | `playlist.noplaylist` / `playlist.playlist_items` | Default playlist behaviour. |
 | `logger.enabled` / `logger.level` | Console logging. |
 | `cookie_file` | Path to a Netscape-format cookie file. |
-| `use_browser_cookies` / `cookie_browser` | Read cookies from a local browser profile instead. |
+| `use_browser_cookies` / `cookie_browser` | Read cookies from a browser profile instead. `cookie_browser` accepts `firefox` or `firefox:/path/to/profile`. |
 
 ### About `formats`
 

@@ -48,6 +48,23 @@ def _deep_merge(base: dict[str, Any], overrides: dict[str, Any]) -> dict[str, An
     return merged
 
 
+def _parse_browser_spec(spec: str) -> tuple[str | None, str | None, str | None, str | None]:
+    """Parse a ``--cookies-from-browser`` value into the tuple yt-dlp expects.
+
+    Accepts a bare browser name (``firefox``) or a name with a profile name or
+    path (``firefox:/srv/profiles/abcd.default``), mirroring the yt-dlp CLI. The
+    profile form matters when the cookies were copied off another machine.
+
+    Args:
+        spec: Browser specification string.
+
+    Returns:
+        A ``(browser, profile, keyring, container)`` tuple.
+    """
+    name, separator, profile = spec.partition(":")
+    return (name.strip().lower(), profile.strip() if separator else None, None, None)
+
+
 def _limit_height(selector: str, height: str) -> str:
     """Apply a maximum height filter to every video term of one format selector.
 
@@ -213,8 +230,7 @@ class DownloadConfig:
         )
 
         if browser:
-            # yt-dlp expects a tuple of (browser, profile, keyring, container).
-            opts["cookiesfrombrowser"] = (browser, None, None, None)
+            opts["cookiesfrombrowser"] = _parse_browser_spec(browser)
             return opts
 
         configured = cookie_file or self._data.get("cookie_file")
@@ -244,10 +260,9 @@ class DownloadConfig:
             log.warning(f"Cannot inspect cookie file '{path}' ({exc}); passing it to yt-dlp anyway.")
             return True
 
-        log.warning(
-            f"Cookie file '{path}' does not exist; continuing without cookies. "
-            "Age-restricted and members-only videos will fail."
-        )
+        # Only a problem for content that actually needs authentication, and the
+        # error hint covers that case -- so this stays out of normal output.
+        log.debug(f"Cookie file '{path}' does not exist; continuing without cookies.")
         return False
 
     def build_ydl_opts(

@@ -112,8 +112,6 @@ class TestBuildYdlOpts:
         opts = make_config().build_ydl_opts()
 
         assert opts["restrictfilenames"] is True
-        assert opts["writethumbnail"] is True
-        assert opts["writeinfojson"] is True
         assert opts["writesubtitles"] is True
         assert opts["subtitleslangs"] == ["en"]
         assert opts["merge_output_format"] == "mp4"
@@ -181,7 +179,7 @@ class TestCookieOptions:
 
         assert opts["cookiefile"] == str(jar)
 
-    def test_missing_cookie_file_is_dropped_with_a_warning(self, make_config, caplog):
+    def test_missing_cookie_file_is_dropped_silently(self, make_config):
         opts = make_config({"cookie_file": "/nope/cookies.txt"}).build_ydl_opts()
 
         assert "cookiefile" not in opts
@@ -190,6 +188,31 @@ class TestCookieOptions:
         opts = make_config({"use_browser_cookies": True, "cookie_browser": "firefox"}).build_ydl_opts()
 
         assert opts["cookiesfrombrowser"] == ("firefox", None, None, None)
+
+    def test_browser_spec_accepts_a_profile_path(self, make_config):
+        opts = make_config(
+            {"use_browser_cookies": True, "cookie_browser": "firefox:/srv/profiles/ab.default"}
+        ).build_ydl_opts()
+
+        assert opts["cookiesfrombrowser"] == ("firefox", "/srv/profiles/ab.default", None, None)
+
+    def test_bare_browser_name_has_no_profile(self, make_config):
+        opts = make_config({"use_browser_cookies": True, "cookie_browser": "Firefox"}).build_ydl_opts()
+
+        assert opts["cookiesfrombrowser"] == ("firefox", None, None, None)
+
+    def test_missing_cookie_file_does_not_warn(self, make_config, caplog):
+        with caplog.at_level("WARNING", logger="jb-download"):
+            make_config({"cookie_file": "/nope/cookies.txt"}).build_ydl_opts()
+
+        assert caplog.text == ""
+
+    def test_sidecar_files_are_off_by_default(self, make_config):
+        opts = make_config().build_ydl_opts()
+
+        assert opts["writedescription"] is False
+        assert opts["writeinfojson"] is False
+        assert opts["writethumbnail"] is False
 
     def test_cli_cookie_file_overrides_the_configured_one(self, make_config, tmp_path):
         jar = tmp_path / "override.txt"

@@ -12,15 +12,17 @@
   "output_template": "%(title)s.%(ext)s",
   "restrict_filenames": true,
   "no_overwrites": true,
-  "write_description": true,
-  "write_info_json": true,
-  "write_thumbnail": true,
+  "write_description": false,
+  "write_info_json": false,
+  "write_thumbnail": false,
   "embed_metadata": true,
   "embed_thumbnail": false,
   "embed_subs": true,
   "subtitles": {
     "write_subs": true,
-    "sub_langs": ["en"],
+    "sub_langs": [
+      "en"
+    ],
     "embed_subs": true
   },
   "postprocessors": [],
