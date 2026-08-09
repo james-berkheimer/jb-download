@@ -48,6 +48,29 @@ def _deep_merge(base: dict[str, Any], overrides: dict[str, Any]) -> dict[str, An
     return merged
 
 
+def _parse_js_runtimes(specs: list[str]) -> dict[str, dict[str, str | None]]:
+    """Build the ``js_runtimes`` mapping yt-dlp expects.
+
+    YouTube extraction without a JavaScript runtime is deprecated and can hide
+    formats, so the runtimes to try are configurable. Each entry is a runtime
+    name with an optional explicit path (``node:/usr/local/bin/node``). yt-dlp
+    ignores names it does not support and runtimes that are not installed.
+
+    Args:
+        specs: Runtime specifications from the settings file.
+
+    Returns:
+        A mapping of runtime name to its options.
+    """
+    runtimes: dict[str, dict[str, str | None]] = {}
+    for spec in specs:
+        name, separator, path = str(spec).partition(":")
+        name = name.strip().lower()
+        if name:
+            runtimes[name] = {"path": path.strip() if separator else None}
+    return runtimes
+
+
 def _parse_browser_spec(spec: str) -> tuple[str | None, str | None, str | None, str | None]:
     """Parse a ``--cookies-from-browser`` value into the tuple yt-dlp expects.
 
@@ -312,6 +335,10 @@ class DownloadConfig:
             "geo_bypass": bool(data.get("geo_bypass", False)),
             "postprocessors": self._build_postprocessors(),
         }
+
+        runtimes = _parse_js_runtimes(data.get("js_runtimes", []))
+        if runtimes:
+            opts["js_runtimes"] = runtimes
 
         if data.get("no_overwrites", False):
             opts["overwrites"] = False

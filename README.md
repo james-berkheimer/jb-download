@@ -144,6 +144,7 @@ Defaults ship inside the package (`jb_download/default_settings.json`). Your set
 | `sleep_interval.min` / `sleep_interval.max` | Random delay between downloads, to avoid rate limiting. |
 | `proxy` | Proxy URL. Empty means no proxy. |
 | `geo_bypass` | Attempt to bypass geographic restrictions. |
+| `js_runtimes` | JavaScript runtimes to try for YouTube extraction, e.g. `["deno", "node"]` or `["node:/usr/bin/node"]`. yt-dlp ignores ones that are not installed. An empty list disables them. |
 | `playlist.noplaylist` / `playlist.playlist_items` | Default playlist behaviour. |
 | `logger.enabled` / `logger.level` | Console logging. |
 | `cookie_file` | Path to a Netscape-format cookie file. |

@@ -143,6 +143,21 @@ class TestBuildYdlOpts:
 
         assert "FFmpegVideoRemuxer" not in keys
 
+    def test_js_runtimes_are_enabled_by_default(self, make_config):
+        # YouTube extraction without a JS runtime is deprecated and hides formats.
+        assert make_config().build_ydl_opts()["js_runtimes"] == {
+            "deno": {"path": None},
+            "node": {"path": None},
+        }
+
+    def test_js_runtime_accepts_an_explicit_path(self, make_config):
+        opts = make_config({"js_runtimes": ["node:/usr/bin/node"]}).build_ydl_opts()
+
+        assert opts["js_runtimes"] == {"node": {"path": "/usr/bin/node"}}
+
+    def test_js_runtimes_can_be_disabled(self, make_config):
+        assert "js_runtimes" not in make_config({"js_runtimes": []}).build_ydl_opts()
+
     def test_empty_proxy_is_omitted(self, make_config):
         assert "proxy" not in make_config().build_ydl_opts()
 

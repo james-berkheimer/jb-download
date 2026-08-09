@@ -33,6 +33,10 @@
   },
   "proxy": "",
   "geo_bypass": true,
+  "js_runtimes": [
+    "deno",
+    "node"
+  ],
   "playlist": {
     "noplaylist": false,
     "playlist_items": null
