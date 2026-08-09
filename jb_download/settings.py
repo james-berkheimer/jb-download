@@ -88,6 +88,34 @@ def _parse_browser_spec(spec: str) -> tuple[str | None, str | None, str | None, 
     return (name.strip().lower(), profile.strip() if separator else None, None, None)
 
 
+#: Cookie database filename inside a Firefox profile directory.
+_FIREFOX_COOKIE_DB = "cookies.sqlite"
+
+
+def _browser_profile_ready(spec: tuple[str | None, str | None, str | None, str | None]) -> bool:
+    """Report whether a browser cookie source can actually be read.
+
+    An explicit Firefox profile directory is checked for its cookie database so
+    that a not-yet-populated profile degrades to "no cookies" instead of failing
+    every download. Anything else is left for yt-dlp to resolve.
+
+    Args:
+        spec: A parsed ``(browser, profile, keyring, container)`` tuple.
+
+    Returns:
+        ``True`` if the spec should be handed to yt-dlp.
+    """
+    browser, profile = spec[0], spec[1]
+    if browser != "firefox" or not profile or not Path(profile).is_absolute():
+        return True
+
+    if (Path(profile) / _FIREFOX_COOKIE_DB).is_file():
+        return True
+
+    log.debug(f"No {_FIREFOX_COOKIE_DB} in Firefox profile '{profile}'; continuing without cookies.")
+    return False
+
+
 def _limit_height(selector: str, height: str) -> str:
     """Apply a maximum height filter to every video term of one format selector.
 
@@ -253,8 +281,10 @@ class DownloadConfig:
         )
 
         if browser:
-            opts["cookiesfrombrowser"] = _parse_browser_spec(browser)
-            return opts
+            spec = _parse_browser_spec(browser)
+            if _browser_profile_ready(spec):
+                opts["cookiesfrombrowser"] = spec
+                return opts
 
         configured = cookie_file or self._data.get("cookie_file")
         if configured:

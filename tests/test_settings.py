@@ -3,7 +3,12 @@ import re
 import pytest
 from yt_dlp import YoutubeDL
 
-from jb_download.settings import DownloadConfig, _deep_merge, _limit_height
+from jb_download.settings import (
+    DownloadConfig,
+    _deep_merge,
+    _limit_height,
+    _parse_browser_spec,
+)
 
 
 class TestDeepMerge:
@@ -204,12 +209,13 @@ class TestCookieOptions:
 
         assert opts["cookiesfrombrowser"] == ("firefox", None, None, None)
 
-    def test_browser_spec_accepts_a_profile_path(self, make_config):
-        opts = make_config(
-            {"use_browser_cookies": True, "cookie_browser": "firefox:/srv/profiles/ab.default"}
-        ).build_ydl_opts()
-
-        assert opts["cookiesfrombrowser"] == ("firefox", "/srv/profiles/ab.default", None, None)
+    def test_browser_spec_accepts_a_profile_path(self):
+        assert _parse_browser_spec("firefox:/srv/profiles/ab.default") == (
+            "firefox",
+            "/srv/profiles/ab.default",
+            None,
+            None,
+        )
 
     def test_bare_browser_name_has_no_profile(self, make_config):
         opts = make_config({"use_browser_cookies": True, "cookie_browser": "Firefox"}).build_ydl_opts()
@@ -228,6 +234,44 @@ class TestCookieOptions:
         assert opts["writedescription"] is False
         assert opts["writeinfojson"] is False
         assert opts["writethumbnail"] is False
+
+    def test_firefox_profile_without_a_cookie_db_is_skipped(self, make_config, tmp_path):
+        # Must degrade to "no cookies" rather than failing every download.
+        empty = tmp_path / "ffprofile"
+        empty.mkdir()
+
+        opts = make_config(
+            {"use_browser_cookies": True, "cookie_browser": f"firefox:{empty}"}
+        ).build_ydl_opts()
+
+        assert "cookiesfrombrowser" not in opts
+
+    def test_firefox_profile_with_a_cookie_db_is_used(self, make_config, tmp_path):
+        profile = tmp_path / "ffprofile"
+        profile.mkdir()
+        (profile / "cookies.sqlite").write_bytes(b"SQLite format 3\x00")
+
+        opts = make_config(
+            {"use_browser_cookies": True, "cookie_browser": f"firefox:{profile}"}
+        ).build_ydl_opts()
+
+        assert opts["cookiesfrombrowser"] == ("firefox", str(profile), None, None)
+
+    def test_unpopulated_firefox_profile_falls_back_to_the_cookie_file(self, make_config, tmp_path):
+        empty = tmp_path / "ffprofile"
+        empty.mkdir()
+        jar = tmp_path / "cookies.txt"
+        jar.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
+
+        opts = make_config(
+            {
+                "use_browser_cookies": True,
+                "cookie_browser": f"firefox:{empty}",
+                "cookie_file": str(jar),
+            }
+        ).build_ydl_opts()
+
+        assert opts["cookiefile"] == str(jar)
 
     def test_cli_cookie_file_overrides_the_configured_one(self, make_config, tmp_path):
         jar = tmp_path / "override.txt"
