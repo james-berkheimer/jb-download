@@ -168,7 +168,7 @@ After reboot or `source /etc/profile`, the following commands will be available:
 
 ```bash
 jb-download             # Run the CLI
-jb-download-update      # Pull the latest jb-download release and install it
+jb-download-update      # Install the latest jb-download release and upgrade yt-dlp
 jb-download-uninstall   # Remove jb-download from system
 jb-download-settings    # Open your active jb-download settings.json
 ```
@@ -182,7 +182,8 @@ jb-download-update
 ```
 
 This checks the latest GitHub Release, installs it into the existing venv if it is newer, and leaves your
-settings file untouched.
+settings file untouched. It also upgrades yt-dlp to its latest release on every run, even when jb-download
+itself is already current, since YouTube breakages are usually fixed in yt-dlp first.
 
 ---
 

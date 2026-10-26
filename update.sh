@@ -7,6 +7,14 @@ VENV_PATH="$INSTALL_DIR/venv"
 SETTINGS_PATH="$INSTALL_DIR/jb-download_settings.json"
 REPO="james-berkheimer/jb-download"
 
+# yt-dlp ships fixes far more often than jb-download does, and pip leaves an
+# already-satisfied dependency alone, so refresh it on every run.
+upgrade_ytdlp() {
+  echo "-> Upgrading yt-dlp ..."
+  "$VENV_PATH/bin/pip" install --upgrade "yt-dlp[default]"
+  "$VENV_PATH/bin/python" -c 'import yt_dlp.version as v; print("-> yt-dlp", v.__version__)'
+}
+
 echo "=== Updating jb-download ==="
 
 if [ ! -x "$VENV_PATH/bin/pip" ]; then
@@ -23,7 +31,8 @@ fi
 CURRENT="$("$VENV_PATH/bin/jb-download" --version 2>/dev/null | awk '{print $NF}' || true)"
 echo "-> Installed: ${CURRENT:-unknown}, latest: $VERSION"
 if [ "$CURRENT" = "$VERSION" ]; then
-  echo "Already up to date."
+  echo "jb-download is already up to date."
+  upgrade_ytdlp
   exit 0
 fi
 
@@ -41,6 +50,7 @@ fi
 
 echo "-> Installing ..."
 "$VENV_PATH/bin/pip" install --upgrade "$WHEEL_PATH"
+upgrade_ytdlp
 
 # Existing settings are never overwritten; a fresh install seeds them instead.
 if [ ! -f "$SETTINGS_PATH" ]; then
